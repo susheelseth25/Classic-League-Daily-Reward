@@ -1,18 +1,15 @@
 import discord
 from discord.ext import commands, tasks
 import random
-from datetime import datetime, time
-import asyncio
+from datetime import datetime
 import os
 
-# ========== SETTINGS ==========
-TOKEN = "e1d5657eb8851e2b43bff4e31c0bbad2ac564f5e76e6c83d7d2cec2a24956bba"          # Paste your bot token
-CHANNEL_ID =  1564683438248828933       # Replace with your #daily-entry channel ID
-WINNERS_COUNT = 1                      # How many winners per day
-ENTRY_EMOJI = "✅"                     # Emoji players react with
-START_HOUR = 12                        # Hour the entry opens (24h format, IST)
-END_HOUR = 23                          # Hour the draw happens (24h format, IST)
-# ==============================
+TOKEN = os.getenv("TOKEN")
+CHANNEL_ID = int(os.getenv("CHANNEL_ID", "0"))
+WINNERS_COUNT = int(os.getenv("WINNERS_COUNT", "3"))
+ENTRY_EMOJI = "✅"
+START_HOUR = int(os.getenv("START_HOUR", "12"))
+END_HOUR = int(os.getenv("END_HOUR", "23"))
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -33,8 +30,7 @@ async def on_ready():
 async def daily_cycle():
     global daily_message, participants
     now = datetime.now()
-    
-    # Start new entry at START_HOUR
+
     if now.hour == START_HOUR and now.minute == 0:
         channel = bot.get_channel(CHANNEL_ID)
         if channel:
@@ -48,7 +44,6 @@ async def daily_cycle():
             await daily_message.add_reaction(ENTRY_EMOJI)
             print("New daily entry started")
 
-    # Draw winners at END_HOUR
     if now.hour == END_HOUR and now.minute == 0 and daily_message:
         channel = bot.get_channel(CHANNEL_ID)
         if channel and participants:
@@ -80,4 +75,5 @@ async def on_raw_reaction_remove(payload):
         if user in participants:
             participants.remove(user)
 
-bot.run(TOKEN)
+if __name__ == "__main__":
+    bot.run(TOKEN)
